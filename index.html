@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#28509C">
+<title>Explaining the delays was the less valuable part</title>
+<style>
+/* ==========================================================================
+   BioMarin-branded. Arial + brand palette. Brand color on white, or white on
+   brand color — never brand-on-brand.
+   FILM — self-playing, ~90s, two taps.  READ — the detail, below.
+   No network dependencies. All data invented.
+   ========================================================================== */
+:root{
+  --blue:#28509C; --dgray:#646464; --gray:#A0A0A0;
+  --purple:#353D98; --violet:#A9218E; --navy:#002E56;
+  --magenta:#ED037C; --cyan:#0075BF; --red:#ED1849; --orange:#F26531;
+  --green:#1E8A4C;
+  --paper:#F4F7FA; --line:#DCE4EC; --hair:#EDF1F5;
+  --font:Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:#fff;color:var(--dgray);font-size:17px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+body.locked{overflow:hidden;height:100svh}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ══════════ FILM ══════════ */
+#film{position:fixed;inset:0;z-index:100;background:#fff;overflow:hidden}
+#film.release{position:relative;inset:auto;height:100svh}
+.scene{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+  padding:78px max(22px,calc(50vw - 290px)) 46px;opacity:0}
+/* explicit end state, not animation fill — the animation will not restart on re-entry */
+.scene.on{display:flex;opacity:1;animation:fadein .4s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+#bar{position:absolute;top:0;left:0;right:0;z-index:8;background:#fff;padding:14px 20px 0}
+#bar .row{display:flex;align-items:center;justify-content:space-between}
+#bar img{height:19px;display:block}
+#bar .ct{font-size:12px;color:var(--gray);font-weight:700;letter-spacing:.08em}
+#bar .nav{display:flex;align-items:center;gap:11px}
+#back{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid var(--line);background:#fff;
+  color:var(--dgray);font-family:var(--font);font-size:15px;font-weight:700;line-height:1;cursor:pointer}
+#back:disabled{opacity:.28;cursor:default}
+#ticks{display:flex;gap:3px;margin-top:10px}
+#ticks i{flex:1;height:4px;background:var(--hair);border-radius:3px;position:relative;overflow:hidden}
+#ticks i::after{content:"";position:absolute;inset:0;background:var(--blue);border-radius:3px;
+  transform:scaleX(0);transform-origin:left}
+#ticks i.done::after{transform:scaleX(1)}
+/* --dur is set per scene on the parent; custom properties reach the pseudo-element, duration does not */
+#ticks i.now::after{animation:fill var(--dur,9s) linear forwards}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* plain text at the foot of the page — no panel, so it can never mask content */
+#note{position:absolute;bottom:0;left:0;right:0;z-index:1;text-align:center;pointer-events:none;
+  font-size:9.5px;font-weight:700;letter-spacing:.045em;color:var(--gray);text-transform:uppercase;
+  padding:0 14px calc(10px + env(safe-area-inset-bottom))}
+
+/* heroic type — the message IS the page */
+.h{font-size:clamp(29px,8vw,42px);font-weight:700;line-height:1.1;letter-spacing:-.025em;
+  color:var(--blue);text-wrap:balance}
+.s{font-size:clamp(18px,4.6vw,22px);font-weight:700;line-height:1.32;color:var(--navy);
+  margin-top:12px;text-wrap:balance}
+.n{font-size:15px;color:var(--dgray);margin-top:10px;line-height:1.5}
+.mag{color:var(--magenta)} .rd{color:var(--red)}
+
+/* 1 · hook */
+.who{margin-top:30px;padding-top:22px;border-top:2px solid var(--line);display:flex;
+  align-items:center;gap:15px;text-decoration:none;color:inherit}
+.ava{width:80px;height:80px;border-radius:50%;overflow:hidden;flex:none;background:var(--paper);
+  border:2px solid var(--line)}
+/* landscape headshot: cover fills the circle, the scale zooms toward the face while keeping headroom */
+.ava img{width:100%;height:100%;object-fit:cover;object-position:53% 0%;
+  transform:scale(1.14);transform-origin:53% 62%}
+.wt{display:flex;flex-direction:column;font-size:14px;line-height:1.5;color:var(--dgray)}
+.wt b{color:var(--navy);font-size:20px;line-height:1.2;margin-bottom:3px}
+.wt .li{color:var(--blue);font-weight:700;font-size:13px;margin-top:6px}
+.glo{margin-top:13px;font-size:12.5px;color:var(--gray);line-height:1.45}
+.glo b{color:var(--dgray);font-weight:700}
+#startbtn{display:block;width:100%;margin-top:26px;padding:17px;border:0;border-radius:11px;
+  background:var(--blue);color:#fff;font-family:var(--font);font-weight:700;font-size:17px;
+  cursor:pointer;box-shadow:0 8px 22px -8px rgba(40,80,156,.75)}
+#startbtn:active{transform:scale(.985)}
+.hint{text-align:center;font-size:12px;font-weight:700;color:var(--gray);margin-top:10px;letter-spacing:.06em}
+
+/* kicker — names the artefact without stealing the headline */
+.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:10px}
+
+/* 2 · wall */
+#wallwrap{position:absolute;inset:0;padding:74px 12px 26px;display:flex;align-items:flex-start;z-index:1}
+#wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:5px;width:100%}
+.tile{border-radius:6px;padding:7px 8px;opacity:0;transform:scale(.84);color:#fff;
+  transition:opacity .3s ease,box-shadow .2s ease}
+.tile.pop{opacity:1;transform:none;animation:pop .36s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.84)}to{opacity:1;transform:none}}
+.tile.r{background:var(--red)} .tile.g{background:var(--green)}
+.tile .tn{font-size:9px;line-height:1.2;height:2.4em;overflow:hidden;font-weight:700;
+  text-transform:uppercase;letter-spacing:.02em;opacity:.85}
+.tile .tv{font-size:16px;font-weight:700;margin-top:3px}
+#wall.pickable .tile.g{opacity:.14}
+#wall.pickable .tile.r{cursor:pointer;animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(237,24,73,0)}50%{box-shadow:0 0 0 5px rgba(237,24,73,.35)}}
+#wallover{position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:44px max(22px,calc(50vw - 290px)) 30px;
+  background:linear-gradient(to top,#fff 60%,rgba(255,255,255,.96) 80%,rgba(255,255,255,0));
+  opacity:0;transition:opacity .5s ease;pointer-events:none}
+#wallover.on{opacity:1}
+#pick{position:absolute;left:0;right:0;bottom:20px;z-index:3;text-align:center;opacity:0;
+  transition:opacity .4s ease;pointer-events:none}
+#pick.on{opacity:1}
+#pick span{display:inline-block;background:var(--magenta);color:#fff;font-weight:700;font-size:16px;
+  padding:14px 28px;border-radius:30px;box-shadow:0 8px 22px -8px rgba(237,3,124,.85)}
+
+/* 3 · so what */
+.qs{margin-top:18px;display:flex;flex-direction:column}
+.q{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;
+  border-bottom:1px solid var(--line);font-size:16px;font-weight:700;color:var(--navy);opacity:0}
+.q.in{opacity:1;animation:fadein .4s ease}
+.q .d{color:var(--gray);font-size:18px}
+.q.key{color:var(--magenta)}
+
+/* 4 · tiers */
+.los{display:flex;gap:14px;margin-top:20px}
+.losbar{flex:none;width:26px;display:flex;flex-direction:column;align-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--orange);text-transform:uppercase}
+.losbar .up{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin-top:6px}
+.losbar::before{content:"▲";font-size:11px;line-height:1}
+.tiers{flex:1;display:flex;flex-direction:column;gap:8px}
+.tier{border-radius:9px;padding:11px 14px;color:#fff;opacity:0;transform:translateX(-14px)}
+.tier.in{opacity:1;transform:none;animation:tierIn .5s cubic-bezier(.2,.9,.3,1)}
+@keyframes tierIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.t4{background:var(--navy)} .t3{background:var(--purple)} .t2{background:var(--cyan)}
+.tier .tt{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+.tier .tq{font-size:17px;font-weight:700;margin-top:2px}
+.tier .tw{font-size:12px;margin-top:3px;opacity:.85}
+
+/* 5 · gantt */
+.gantt{margin-top:16px;position:relative}
+.grow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.grow .gid{width:56px;flex:none;font-size:11px;font-weight:700;color:var(--gray)}
+.gbar{flex:1;display:flex;height:15px;border-radius:3px;overflow:hidden;background:var(--hair)}
+.gbar i{display:block;height:100%;width:0;transition:width .5s ease}
+.gtarget{position:absolute;top:0;bottom:16px;width:2px;background:var(--red);left:70%}
+.gtarget::after{content:"TARGET";position:absolute;top:-13px;left:-18px;font-size:9px;font-weight:700;
+  color:var(--red);letter-spacing:.08em}
+.glate{font-size:11px;font-weight:700;color:var(--red);width:34px;flex:none;text-align:right;opacity:0}
+.glate.on{opacity:1;transition:opacity .3s ease}
+.gkey{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;font-size:10.5px;font-weight:700;color:var(--gray)}
+.gkey em{font-style:normal;display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+
+/* 6 · open shipment */
+.det{border:2px solid var(--line);border-radius:11px;overflow:hidden;margin-top:16px}
+.det .dh{padding:11px 14px;background:var(--paper);display:flex;justify-content:space-between;
+  align-items:center;font-size:13px;font-weight:700;color:var(--navy)}
+.tl{padding:15px 14px 4px 32px;position:relative}
+.tl::before{content:"";position:absolute;left:20px;top:21px;bottom:24px;width:2px;background:var(--line)}
+.ev{position:relative;padding-bottom:13px;opacity:0;transform:translateY(8px)}
+.ev.in{opacity:1;transform:none;transition:opacity .35s ease,transform .35s ease}
+.ev::before{content:"";position:absolute;left:-17px;top:4px;width:9px;height:9px;border-radius:50%;
+  background:#fff;border:2px solid var(--gray)}
+.ev .d{display:block;font-size:11.5px;font-weight:700;color:var(--gray)}
+.ev .t{display:block;font-size:14.5px;color:var(--navy);line-height:1.35;margin-top:1px}
+.ev.suq::before{border-color:var(--red);background:var(--red);box-shadow:0 0 0 4px rgba(237,24,73,.16)}
+.ev.suq .t{color:var(--red);font-weight:700}
+.ev.dev::before{border-color:var(--violet);background:var(--violet);box-shadow:0 0 0 4px rgba(169,33,142,.16)}
+.ev.dev .t{color:var(--violet);font-weight:700}
+#openbtn{display:block;width:100%;margin-top:14px;padding:16px;border:0;border-radius:11px;
+  background:var(--magenta);color:#fff;font-family:var(--font);font-weight:700;font-size:17px;
+  cursor:pointer;box-shadow:0 8px 22px -8px rgba(237,3,124,.85)}
+
+/* 7 · lineage */
+#lin{margin-top:16px;width:100%;height:290px;display:block}
+.linlab{display:flex;justify-content:space-between;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.09em;margin-top:4px}
+.linlab .l1{color:var(--blue)} .linlab .l2{color:var(--violet)}
+
+/* 8 · cost */
+.tbar{display:flex;height:38px;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-top:16px}
+.tbar i{display:block;width:0;transition:width .85s cubic-bezier(.3,.8,.3,1)}
+.tkey{margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.tkey div{display:flex;align-items:center;gap:9px;color:var(--dgray)}
+.tkey em{font-style:normal;width:11px;height:11px;border-radius:3px;flex:none}
+.tkey .hi{color:var(--navy);font-weight:700}
+
+/* 9 · line of sight */
+.lead{border:2px solid var(--blue);border-radius:11px;overflow:hidden;margin-top:16px}
+.lead .lh{background:var(--blue);color:#fff;padding:12px 15px;display:flex;
+  justify-content:space-between;align-items:center}
+.lead .lh .k{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.lead .lh .v{font-size:31px;font-weight:700}
+.lead .ls{padding:11px 15px;border-bottom:1px solid var(--line)}
+.lead .ls:last-child{border:0}
+.lead .lt{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:4px}
+.lead .lv2{font-size:15px;color:var(--navy);font-weight:700}
+.dirs{margin-top:14px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.dir{display:flex;gap:10px;color:var(--dgray)}
+.dir .a{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--blue);width:42px;flex:none;padding-top:3px}
+.dir b{color:var(--navy)}
+
+/* 10 · possible */
+.ql{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.ql div{border-left:4px solid var(--cyan);background:var(--paper);border-radius:0 8px 8px 0;
+  padding:10px 13px;font-size:15.5px;font-weight:700;color:var(--navy);opacity:0}
+.ql div.in{opacity:1;animation:fadein .4s ease}
+.scue{position:absolute;left:0;right:0;bottom:48px;text-align:center;font-size:12px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--gray);opacity:0;transition:opacity .5s ease}
+.scue.on{opacity:1}
+.scue span{display:block;font-size:19px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ══════════ READ ══════════ */
+#read{display:none;max-width:640px;margin:0 auto;padding:0 22px 90px}
+#read.on{display:block}
+.rtop{padding:20px 0 10px}
+.rtop img{height:20px}
+.rhero{padding:12px 0 30px;border-bottom:2px solid var(--blue)}
+.rhero h1{font-size:clamp(26px,7vw,34px);font-weight:700;color:var(--blue);line-height:1.14;letter-spacing:-.02em}
+.rhero p{margin-top:12px;font-size:16.5px;line-height:1.6}
+#read section{padding:28px 0;border-bottom:1px solid var(--line)}
+#read h2{font-size:20px;font-weight:700;color:var(--blue);margin-bottom:10px;line-height:1.25}
+#read h2 span{display:block;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:6px}
+#read p{font-size:16.5px;line-height:1.6;margin-bottom:11px}
+#read b{color:var(--navy);font-weight:700}
+#read ul{margin:0 0 11px;padding-left:19px;font-size:16.5px;line-height:1.55}
+#read li{margin-bottom:6px}
+.rfoot{padding:30px 0 0;text-align:center}
+.rfoot .nm{font-size:20px;font-weight:700;color:var(--blue)}
+.rfoot .rl{margin-top:6px;font-size:14px;color:var(--gray);line-height:1.55}
+.replay{margin-top:20px;background:var(--blue);border:0;color:#fff;font-family:var(--font);
+  font-size:14px;font-weight:700;padding:13px 24px;border-radius:24px;cursor:pointer}
+.disc{margin-top:24px;font-size:12px;color:var(--gray);line-height:1.6;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body class="locked">
+
+<div id="film">
+  <div id="bar">
+    <div class="row"><img src="assets/biomarin-logo.png" alt="BioMarin">
+      <span class="nav"><button id="back" aria-label="Previous page">&larr;</button><span class="ct" id="ct">1 / 10</span></span></div>
+    <div id="ticks"></div>
+  </div>
+  <button id="skip" hidden></button>
+  <div id="note">Demo for intern poster session &middot; all data invented</div>
+
+  <!-- 1 -->
+  <section class="scene" data-s="hook">
+    <div class="kick">My main project</div>
+    <div class="h">I visualized every shipment in the GEO network, and why they slip.</div>
+    <div class="s mag">However &mdash; explaining the delays was the less valuable part.</div>
+    <div class="glo"><b>GEO</b> &mdash; Global External Operations.</div>
+    <a class="who" href="https://www.linkedin.com/in/frank-fu-jiajun/" target="_blank" rel="noopener noreferrer">
+      <span class="ava"><img src="assets/h1.jpg" alt="Frank Fu"></span>
+      <span class="wt">
+        <b>Frank Fu</b>
+        Data Analyst &middot; Product Designer<br>
+        MS Business Analytics candidate, UCLA
+        <span class="li">Connect with me on LinkedIn &rarr;</span>
+      </span>
+    </a>
+    <button id="startbtn">Show me what you did &rarr;</button>
+    <div class="hint">90 SECONDS</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="scene" data-s="wall">
+    <div id="wallwrap"><div id="wall"></div></div>
+    <div id="wallover">
+      <div class="h">Everyone here is watching something.</div>
+      <div class="s">Nobody is watching the same thing.</div>
+    </div>
+    <div id="pick"><span>Tap one that's slipping &darr;</span></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="scene" data-s="sowhat">
+    <div class="h"><span class="rd">83% on time.</span> Target 92%.</div>
+    <div class="s">It tells me we missed. Not what to do on Monday.</div>
+    <div class="qs">
+      <div class="q"><span>Why is it slipping?</span><span class="d">&mdash;</span></div>
+      <div class="q"><span>One-off, or every month?</span><span class="d">&mdash;</span></div>
+      <div class="q"><span>Who's already on it?</span><span class="d">&mdash;</span></div>
+      <div class="q key"><span>What did we decide last time?</span><span class="d">&mdash;</span></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="scene" data-s="tiers">
+    <div class="h">Three depths &mdash; the model GEO already uses.</div>
+    <div class="s">What I added is what sits inside each one.</div>
+    <div class="los">
+      <div class="losbar"><span class="up">Line of sight</span></div>
+      <div class="tiers">
+        <div class="tier t4"><div class="tt">Tier 4 &middot; Outcomes</div>
+          <div class="tq">&ldquo;Did we deliver?&rdquo;</div><div class="tw">Leadership</div></div>
+        <div class="tier t3"><div class="tt">Tier 3 &middot; Tracking</div>
+          <div class="tq">&ldquo;Are we on track?&rdquo;</div><div class="tw">GEO &middot; Department</div></div>
+        <div class="tier t2"><div class="tt">Tier 2 &middot; Execution</div>
+          <div class="tq">&ldquo;What happened, when, why?&rdquo;</div><div class="tw">Individual &middot; Role</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="scene" data-s="gantt">
+    <div class="kick">What I built &middot; STO Dashboard</div>
+    <div class="h">Every shipment. Every stage.</div>
+    <div class="s">You can see which step ate the time.</div>
+    <div class="gantt" id="gantt"><div class="gtarget"></div></div>
+    <div class="gkey">
+      <span><em style="background:#002E56"></em>Issue</span>
+      <span><em style="background:#28509C"></em>Transit</span>
+      <span><em style="background:#A0A0A0"></em>Waiting</span>
+      <span><em style="background:#353D98"></em>QC</span>
+      <span><em style="background:#A9218E"></em>QA</span>
+      <span><em style="background:#0075BF"></em>Release</span>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="scene" data-s="open">
+    <div class="h">Open the one that slipped.</div>
+    <div class="s" id="opensub">Eighteen days. Six of them unexplained.</div>
+    <div class="det">
+      <div class="dh"><span>Batch A016772</span><span>Site A &rarr; Site B</span></div>
+      <div class="tl" id="tl">
+        <div class="ev"><span class="d">Day 0</span><span class="t">Goods issue at Site A</span></div>
+        <div class="ev suq"><span class="d">Day 2</span><span class="t">Approved to move &mdash; shipped under quarantine</span></div>
+        <div class="ev"><span class="d">Day 5</span><span class="t">Received at Site B, held in restricted stock</span></div>
+        <div class="ev dev"><span class="d">Day 8</span><span class="t">Deviation raised &mdash; GQP requirement not met</span></div>
+        <div class="ev"><span class="d">Day 11</span><span class="t">Sample reaches QC</span></div>
+        <div class="ev"><span class="d">Day 18</span><span class="t">Released &mdash; 4 days late</span></div>
+      </div>
+    </div>
+    <button id="openbtn">Why did it slip?</button>
+  </section>
+
+  <!-- 7 -->
+  <section class="scene" data-s="lineage">
+    <div class="h">One batch. Every system it touches.</div>
+    <div class="s">Connecting those dots is what took the time.</div>
+    <svg id="lin" viewBox="0 0 340 290" preserveAspectRatio="xMidYMid meet"></svg>
+  </section>
+
+  <!-- 8 -->
+  <section class="scene" data-s="cost">
+    <div class="h">Off-plan happens. Sometimes weekly. That's not the problem.</div>
+    <div class="s">Finding out afterwards is.</div>
+    <div class="tbar">
+      <i data-w="32" style="background:#353D98"></i><i data-w="26" style="background:#A9218E"></i>
+      <i data-w="28" style="background:#0075BF"></i><i data-w="14" style="background:#28509C"></i>
+    </div>
+    <div class="tkey">
+      <div><em style="background:#353D98"></em>Finding which system held the truth</div>
+      <div><em style="background:#A9218E"></em>Reconciling two definitions of &ldquo;late&rdquo;</div>
+      <div><em style="background:#0075BF"></em>Finding who to ask &mdash; and waiting</div>
+      <div class="hi"><em style="background:#28509C"></em>Actually building it</div>
+    </div>
+    <div class="n">A cost most people stopped noticing years ago.</div>
+  </section>
+
+  <!-- 9 -->
+  <section class="scene" data-s="sight">
+    <div class="h">The cause sits next to the number.</div>
+    <div class="s">And so does what to do about it.</div>
+    <div class="lead">
+      <div class="lh"><span class="k">Shipment On-Time</span><span class="v" id="lv">83%</span></div>
+      <div class="ls"><div class="lt">Driver</div>
+        <div class="lv2">QC capacity, Site B &mdash; third month running</div></div>
+      <div class="ls"><div class="lt">Suggested</div>
+        <div class="lv2">Pre-book QC slots &middot; QC Scheduling &middot; due 15 Aug</div></div>
+    </div>
+    <div class="dirs">
+      <div class="dir"><span class="a">DOWN</span><span>Leadership reads the cause without booking anything.</span></div>
+      <div class="dir"><span class="a">UP</span><span>The team <b>sees their own action land.</b></span></div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="scene" data-s="possible">
+    <div class="h">We can answer these today. It takes days.</div>
+    <div class="s">Close the gap and it takes seconds.</div>
+    <div class="ql">
+      <div>Which batches does this open deviation affect?</div>
+      <div>Has this happened before &mdash; what did we do?</div>
+      <div>Which shipments in flight are about to slip?</div>
+      <div>Which do we prioritize, by CMO importance?</div>
+      <div>What causes most of our delays, network-wide?</div>
+    </div>
+    <div class="n">This is also what an AI use case would need. Today there's nothing connected for it to read.</div>
+    <div class="scue" id="scue">Read the detail<span>&darr;</span></div>
+  </section>
+</div>
+
+<main id="read">
+  <div class="rtop"><img src="assets/biomarin-logo.png" alt="BioMarin"></div>
+  <div class="rhero">
+    <h1>What twelve weeks actually taught me.</h1>
+    <p>Not a recap of the walkthrough. Where I started, what changed my thinking, and what I would
+      do with more time.</p>
+  </div>
+
+  <section>
+    <h2><span>01 — Where I started</span>I assumed the data would be the hard part.</h2>
+    <p>The brief was to make shipment performance visible. I expected the difficulty to sit in the
+      modeling — joining sources, settling definitions, getting the logic right.</p>
+    <p>That work was real. It was not where the time went, and it was not what mattered most.</p>
+  </section>
+
+  <section>
+    <h2><span>02 — What changed my thinking</span>One shipment reframed the whole project.</h2>
+    <p>A batch moved before full release and then sat at its destination against an open deviation.
+      Nothing in the records was wrong. The movement data was right. The quality data was right.</p>
+    <p>They were simply held apart. Proving <i>why</i> that shipment was late meant asking several
+      people across two functions and waiting on replies.</p>
+    <p>That was the moment the project stopped being about a dashboard. Teams act on these every
+      time &mdash; <b>they just start later, with less room left to stop the next one.</b></p>
+  </section>
+
+  <section>
+    <h2><span>03 — What it cost</span>Most of the time went to retrieval, not building.</h2>
+    <p>Finding which system held the truth. Discovering two teams meant different things by "late."
+      Working out who to ask, then waiting. Building came last and took the least.</p>
+    <p>I do not read that as a story about being new. Anyone reconstructing the same answer pays the
+      same cost, every time it is needed — and off-plan events happen often enough that this is a
+      recurring bill, not a one-off.</p>
+  </section>
+
+  <section>
+    <h2><span>04 — What I would do with more time</span>Three steps, in order.</h2>
+    <ul>
+      <li><b>Agree the definitions.</b> One meaning of late, one owner per metric. Contributions do
+        not stack until the words match.</li>
+      <li><b>Link movement to quality context</b> at batch level, keeping unmatched cases visible
+        rather than quietly dropped.</li>
+      <li><b>Record the decision against the number</b> — cause, owner, action, outcome — so the
+        next person does not rebuild it from scratch.</li>
+    </ul>
+    <p>None of this needs a new platform. It extends what already exists.</p>
+  </section>
+
+  <section>
+    <h2><span>05 — Where this goes next</span>One thread is a proof, not a program.</h2>
+    <p>Shipment on-time is one tile on a board full of them. The connection underneath it &mdash;
+      movement, quality context, decision &mdash; is the same shape for most of the others. What I
+      built is a worked example of it, not the end of it.</p>
+    <p>Once that record exists, the questions change from backward to forward:</p>
+    <ul>
+      <li>Which batches an open deviation puts at risk, <b>before</b> the next shipment is planned.</li>
+      <li>Which shipments in flight are trending toward a miss, while there is still room to move.</li>
+      <li>Which to prioritize, weighted by how critical each external partner is to supply.</li>
+      <li>What drives most delay across the whole network, rather than one lane at a time.</li>
+    </ul>
+    <p>All of these are answerable today. They cost days of asking, which is why they get asked
+      after the fact instead of before it. <b>Closing that gap is what turns reporting into
+      prevention.</b></p>
+    <p>It is also the groundwork for a serious AI use case here. Not a model fixing a metric &mdash;
+      a connected record of what moved, what happened to it, and what was decided. That record is
+      the prerequisite, and it does not exist yet. <b>I would build it next.</b></p>
+  </section>
+
+  <section>
+    <h2><span>06 — What I am taking with me</span>Not the technical skill.</h2>
+    <p>What I want to carry forward is not the modeling or the tooling. It is the environment, and
+      the people who made the work possible.</p>
+    <p>Biotech is one of the few industries where the constraints are genuinely real and the
+      possibilities are still wide open at the same time — heavily regulated, and sitting on
+      technology that can change how the work actually gets done. <b>That combination is what I want
+      to keep working in.</b></p>
+    <p>And the way this place operates stayed with me: <b>be real</b>, <b>have fun</b>, and keep
+      doing both in a market that does not slow down for anyone. That is what I would be glad to
+      keep contributing to.</p>
+  </section>
+
+  <div class="rfoot">
+    <div class="nm">Frank Fu</div>
+    <div class="rl">Data Analyst &middot; Product Designer<br>MS Business Analytics candidate, UCLA &middot; Summer 2026</div>
+    <button class="replay" id="replay">&#8635; Replay</button>
+    <p class="disc">Illustrative demonstration accompanying an intern research poster. All metrics,
+      sites, shipments, dates and figures are <b>invented for demonstration</b> and do not represent
+      BioMarin operational data, systems or performance. Views are my own.</p>
+  </div>
+</main>
+
+<script>
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+var METRICS = [
+  ["Shipment On-Time","83%",0],["Right First Time","94%",1],["Deviation Closure","71%",0],
+  ["QC Cycle Time","8.2d",0],["Scrap Rate","2.1%",1],["Inventory Days","88",1],
+  ["Schedule Adherence","79%",0],["Batch Release","11.4d",0],["Supplier OTIF","91%",1],
+  ["Complaint Rate","0.4%",1],["CAPA On-Time","68%",0],["Training Compliance","97%",1],
+  ["Yield","96.2%",1],["Changeover Time","4.1h",0],["Open Deviations","23",0],
+  ["Audit Findings","2",1],["Backorder Risk","0",1],["Forecast Accuracy","79%",0],
+  ["Label Rework","1.2%",1],["Shipment Damage","0.3%",1],["Temp Excursions","4",0],
+  ["Doc Errors","12",0],["Utilisation","88%",1],["Overdue Records","31",0]
+];
+var wallBuilt = false;
+function buildWall(){
+  if(wallBuilt) return; wallBuilt = true;
+  var w = $("#wall");
+  METRICS.forEach(function(m, i){
+    var d = document.createElement("div");
+    d.className = "tile " + (m[2] ? "g" : "r");
+    d.innerHTML = '<div class="tn">' + m[0] + '</div><div class="tv">' + m[1] + '</div>';
+    if(!m[2]) d.addEventListener("click", function(){ if(w.classList.contains("pickable")) next(); });
+    w.appendChild(d);
+    setTimeout(function(){ d.classList.add("pop"); }, reduced ? 0 : 80 + i * 78);
+  });
+}
+
+/* gantt : stage widths in days, scale 20, target at day 14 (70%) */
+var SHIPMENTS = [
+  ["SH 2041",[1,3,1,4,2,1],0],["SH 2042",[1,3,1,5,2,1],0],
+  ["SH 2047",[1,4,5,5,2,1],1],["SH 2051",[1,3,1,4,2,1],0],
+  ["SH 2053",[1,4,6,5,2,1],1],["SH 2058",[1,3,2,4,2,1],0],
+  ["SH 2061",[1,3,1,4,2,1],0],["SH 2064",[1,5,4,5,2,1],1]
+];
+var STAGE = ["#002E56","#28509C","#A0A0A0","#353D98","#A9218E","#0075BF"];
+var ganttBuilt = false;
+function buildGantt(){
+  if(ganttBuilt) return; ganttBuilt = true;
+  var g = $("#gantt");
+  SHIPMENTS.forEach(function(sh, r){
+    var row = document.createElement("div");
+    row.className = "grow";
+    var bar = '<span class="gbar">';
+    sh[1].forEach(function(d, k){
+      bar += '<i data-w="' + (d / 20 * 100) + '" style="background:' + STAGE[k] + '"></i>';
+    });
+    bar += '</span>';
+    row.innerHTML = '<span class="gid">' + sh[0] + '</span>' + bar +
+      '<span class="glate">' + (sh[2] ? "LATE" : "") + '</span>';
+    g.appendChild(row);
+    row.querySelectorAll(".gbar i").forEach(function(seg, k){
+      setTimeout(function(){ seg.style.width = seg.dataset.w + "%"; },
+        reduced ? 0 : 300 + r * 150 + k * 70);
+    });
+    if(sh[2]) setTimeout(function(){ row.querySelector(".glate").classList.add("on"); },
+      reduced ? 0 : 1500 + r * 150);
+  });
+}
+
+/* lineage : clouds of records, one batch linked across all of them */
+var linBuilt = false;
+function buildLineage(){
+  if(linBuilt) return; linBuilt = true;
+  var svg = $("#lin"), NS = "http://www.w3.org/2000/svg";
+
+  // deterministic disc scatter so the clouds look organic but never reshuffle
+  function cluster(cx, cy, n, seed){
+    var pts = [], s = seed;
+    for(var i = 0; i < n; i++){
+      s = (s * 9301 + 49297) % 233280; var a = (s / 233280) * Math.PI * 2;
+      s = (s * 9301 + 49297) % 233280; var r = Math.sqrt(s / 233280) * 48;
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+  var mov = cluster(66, 74, 20, 4711),
+      qua = cluster(272, 74, 20, 1307),
+      log = cluster(170, 216, 20, 8821);
+
+  // anchor each link on the most central dot so the hero never lands on the rim
+  function central(pts, cx, cy){
+    var best = 0, bd = Infinity;
+    pts.forEach(function(p, i){
+      var d = (p[0] - cx) * (p[0] - cx) + (p[1] - cy) * (p[1] - cy);
+      if(d < bd){ bd = d; best = i; }
+    });
+    return best;
+  }
+  var hM = central(mov, 66, 74), hQ = central(qua, 272, 74), hL = central(log, 170, 216);
+
+  function dot(c, r, fill){
+    var el = document.createElementNS(NS, "circle");
+    el.setAttribute("cx", c[0]); el.setAttribute("cy", c[1]); el.setAttribute("r", r);
+    el.setAttribute("fill", fill); el.setAttribute("opacity", "0");
+    svg.appendChild(el);
+    return el;
+  }
+  function fade(el, to, at){
+    setTimeout(function(){
+      el.style.transition = "opacity .4s ease"; el.setAttribute("opacity", to);
+    }, reduced ? 0 : at);
+  }
+  function label(x, y, text, fill, at){
+    var t = document.createElementNS(NS, "text");
+    t.setAttribute("x", x); t.setAttribute("y", y); t.setAttribute("text-anchor", "middle");
+    t.setAttribute("fill", fill); t.setAttribute("font-size", "11");
+    t.setAttribute("font-weight", "700"); t.setAttribute("letter-spacing", "1");
+    t.setAttribute("font-family", "Arial, Helvetica, sans-serif");
+    t.setAttribute("opacity", "0"); t.textContent = text;
+    svg.appendChild(t); fade(t, "1", at);
+  }
+  function link(a, b, at){
+    var p = document.createElementNS(NS, "path"), mx = (a[0] + b[0]) / 2;
+    p.setAttribute("d", "M" + a[0] + "," + a[1] + " C" + mx + "," + a[1] + " " + mx + "," + b[1] + " " + b[0] + "," + b[1]);
+    p.setAttribute("stroke", "#ED1849"); p.setAttribute("stroke-width", "2.4");
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-linecap", "round");
+    p.setAttribute("stroke-dasharray", "320"); p.setAttribute("stroke-dashoffset", "320");
+    svg.appendChild(p);
+    setTimeout(function(){
+      p.style.transition = "stroke-dashoffset 1s ease"; p.setAttribute("stroke-dashoffset", "0");
+    }, reduced ? 0 : at);
+  }
+
+  // clouds — movement and quality first, logistics only after the first link is drawn
+  mov.forEach(function(c, i){ if(i !== hM) fade(dot(c, 5, "#28509C"), ".22", 200 + i * 40); });
+  qua.forEach(function(c, i){ if(i !== hQ) fade(dot(c, 5, "#A9218E"), ".22", 200 + i * 40); });
+  label(66, 138, "MOVEMENT", "#28509C", 900);
+  label(272, 138, "QUALITY", "#A9218E", 900);
+
+  link(mov[hM], qua[hQ], 2400);
+  fade(dot(mov[hM], 9, "#ED1849"), "1", 1500);
+  fade(dot(qua[hQ], 9, "#ED1849"), "1", 1900);
+
+  var tag = document.createElementNS(NS, "text");
+  tag.setAttribute("x", 169); tag.setAttribute("y", 40);
+  tag.setAttribute("text-anchor", "middle"); tag.setAttribute("fill", "#ED1849");
+  tag.setAttribute("font-size", "13"); tag.setAttribute("font-weight", "700");
+  tag.setAttribute("font-family", "Arial, Helvetica, sans-serif");
+  tag.setAttribute("opacity", "0"); tag.textContent = "A016772";
+  svg.appendChild(tag); fade(tag, "1", 3400);
+
+  log.forEach(function(c, i){ if(i !== hL) fade(dot(c, 5, "#0075BF"), ".22", 4300 + i * 40); });
+  label(170, 280, "LOGISTICS", "#0075BF", 5000);
+  link(qua[hQ], log[hL], 6000);          // chains on from quality, not back to movement
+  fade(dot(log[hL], 9, "#ED1849"), "1", 5600);
+}
+
+var SCENES = [
+  {s:"hook",     gate:true, hold:true},
+  {s:"wall",     ms:20000, gate:true, bar:14000},
+  {s:"sowhat",   ms:9500},
+  {s:"tiers",    ms:10000},
+  {s:"gantt",    ms:10000},
+  {s:"open",     ms:20000, gate:true, bar:14500},
+  {s:"lineage",  ms:14000},
+  {s:"cost",     ms:11000},
+  {s:"sight",    ms:11000},
+  {s:"possible", last:true, bar:9000}
+];
+
+var idx = -1, timer = null, gateTimer = null, sceneTimers = [];
+var ticks = $("#ticks");
+SCENES.forEach(function(){ ticks.appendChild(document.createElement("i")); });
+
+function clearTimers(){ clearTimeout(timer); clearTimeout(gateTimer); sceneTimers.forEach(clearTimeout); sceneTimers = []; }
+
+function go(i){
+  if(i >= SCENES.length) return;
+  clearTimers();
+  idx = i;
+  var def = SCENES[i], el = $('.scene[data-s="' + def.s + '"]');
+  $$(".scene").forEach(function(n){ n.classList.remove("on"); });
+  el.classList.add("on");
+  $("#ct").textContent = (i + 1) + " / " + SCENES.length;
+  $("#back").disabled = (i === 0);
+
+  Array.prototype.forEach.call(ticks.children, function(d, n){
+    d.className = "";
+    d.style.removeProperty("--dur");
+    void d.offsetWidth;                       // force the fill animation to restart
+    if(n < i){ d.className = "done"; }
+    else if(n === i && !def.hold){            // a held scene has no clock, so no fill
+      d.style.setProperty("--dur", (def.bar || def.ms) + "ms");
+      d.className = "now";
+    }
+  });
+
+  if(ENTER[def.s]) ENTER[def.s](el);
+  if(!def.gate && !def.last) timer = setTimeout(next, def.ms);
+  if(def.last) release();
+}
+function next(){ go(idx + 1); }
+
+/* stepping back re-enters the scene normally, so its timer restarts and playback continues */
+$("#back").addEventListener("click", function(){ if(idx > 0) go(idx - 1); });
+
+var ENTER = {
+  hook: function(){
+    $("#startbtn").onclick = next;           // the landing waits for the tap, no timer
+  },
+
+  wall: function(){
+    buildWall();
+    var over = $("#wallover"), pk = $("#pick"), w = $("#wall");
+    sceneTimers.push(setTimeout(function(){ over.classList.add("on"); }, reduced ? 0 : 3000));
+    sceneTimers.push(setTimeout(function(){
+      over.classList.remove("on"); w.classList.add("pickable"); pk.classList.add("on");
+      gateTimer = setTimeout(next, 7000);
+    }, reduced ? 250 : 7000));
+  },
+
+  sowhat: function(el){
+    var qs = el.querySelectorAll(".q");
+    qs.forEach(function(q){ q.classList.remove("in"); });
+    qs.forEach(function(q, i){
+      sceneTimers.push(setTimeout(function(){ q.classList.add("in"); }, reduced ? 0 : 600 + i * 900));
+    });
+  },
+
+  tiers: function(el){
+    var ts = el.querySelectorAll(".tier");
+    ts.forEach(function(t){ t.classList.remove("in"); });
+    ts.forEach(function(t, i){
+      sceneTimers.push(setTimeout(function(){ t.classList.add("in"); }, reduced ? 0 : 500 + i * 700));
+    });
+  },
+
+  gantt: buildGantt,
+
+  open: function(){
+    var btn = $("#openbtn"), evs = $$("#tl .ev"), sub = $("#opensub");
+    evs.forEach(function(e){ e.classList.remove("in"); });
+    sub.textContent = "Eighteen days. Six of them unexplained.";
+    btn.disabled = false; btn.style.display = "block";
+    function reveal(){
+      if(btn.disabled) return;
+      btn.disabled = true; btn.style.display = "none";
+      clearTimeout(gateTimer);
+      evs.forEach(function(e, i){
+        sceneTimers.push(setTimeout(function(){ e.classList.add("in"); }, reduced ? 0 : i * 420));
+      });
+      sceneTimers.push(setTimeout(function(){
+        sub.textContent = "The reason existed all along. It was written down somewhere else.";
+      }, reduced ? 0 : 2900));
+      gateTimer = setTimeout(next, reduced ? 600 : 7000);
+    }
+    btn.onclick = reveal;
+    gateTimer = setTimeout(reveal, 7000);
+  },
+
+  lineage: buildLineage,
+
+  cost: function(el){
+    el.querySelectorAll(".tbar i").forEach(function(b, i){
+      b.style.width = "0";
+      sceneTimers.push(setTimeout(function(){ b.style.width = b.dataset.w + "%"; }, 250 + i * 130));
+    });
+  },
+
+  sight: function(){
+    var v = $("#lv");
+    v.textContent = "83%";
+    if(reduced){ v.textContent = "92%"; return; }
+    var vals = ["86%","89%","92%"], i = 0;
+    var t = setInterval(function(){
+      v.textContent = vals[i];
+      if(i === vals.length - 1) clearInterval(t);
+      i++;
+    }, 420);
+    sceneTimers.push(t);
+  },
+
+  possible: function(el){
+    var qs = el.querySelectorAll(".ql div");
+    qs.forEach(function(q){ q.classList.remove("in"); });
+    qs.forEach(function(q, i){
+      sceneTimers.push(setTimeout(function(){ q.classList.add("in"); }, reduced ? 0 : 300 + i * 420));
+    });
+    sceneTimers.push(setTimeout(function(){ $("#scue").classList.add("on"); }, 3200));
+  }
+};
+
+function release(){
+  document.body.classList.remove("locked");
+  $("#read").classList.add("on");
+  $("#film").classList.add("release");
+}
+
+/* background tabs freeze CSS animations; finish them on return so nothing is stuck invisible */
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){
+    document.getAnimations().forEach(function(a){ try{ a.finish(); }catch(e){} });
+  }
+});
+$("#skip").addEventListener("click", function(){
+  clearTimers();
+  document.body.classList.remove("locked");
+  $("#read").classList.add("on");
+  $("#film").style.display = "none";
+  window.scrollTo(0, 0);
+});
+$("#replay").addEventListener("click", function(){
+  $("#film").style.display = ""; $("#film").classList.remove("release");
+  $("#read").classList.remove("on");
+  document.body.classList.add("locked"); window.scrollTo(0, 0);
+  wallBuilt = false; $("#wall").innerHTML = ""; $("#wall").classList.remove("pickable");
+  $("#wallover").classList.remove("on"); $("#pick").classList.remove("on");
+  ganttBuilt = false; $("#gantt").innerHTML = '<div class="gtarget"></div>';
+  linBuilt = false; $("#lin").innerHTML = "";
+  go(0);
+});
+
+go(0);
+</script>
+</body>
+</html>
