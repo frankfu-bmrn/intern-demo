@@ -44,6 +44,10 @@ body.locked{overflow:hidden;height:100svh}
 #back{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid var(--line);background:#fff;
   color:var(--dgray);font-family:var(--font);font-size:15px;font-weight:700;line-height:1;cursor:pointer}
 #back:disabled{opacity:.28;cursor:default}
+#fwd{position:absolute;right:18px;bottom:30px;z-index:8;width:44px;height:44px;padding:0;
+  border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--blue);
+  font-family:var(--font);font-size:19px;font-weight:700;line-height:1;cursor:pointer;
+  box-shadow:0 3px 10px -4px rgba(11,31,53,.35)}
 #ticks{display:flex;gap:3px;margin-top:10px}
 #ticks i{flex:1;height:4px;background:var(--hair);border-radius:3px;position:relative;overflow:hidden}
 #ticks i::after{content:"";position:absolute;inset:0;background:var(--blue);border-radius:3px;
@@ -103,7 +107,7 @@ body.locked{overflow:hidden;height:100svh}
 #wall.pickable .tile.r{cursor:pointer;animation:pulse 1.3s ease-in-out infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(237,24,73,0)}50%{box-shadow:0 0 0 5px rgba(237,24,73,.35)}}
 #wallover{position:absolute;left:0;right:0;bottom:0;z-index:2;
-  padding:44px max(22px,calc(50vw - 290px)) 30px;
+  padding:44px max(22px,calc(50vw - 290px)) 88px;
   background:linear-gradient(to top,#fff 60%,rgba(255,255,255,.96) 80%,rgba(255,255,255,0));
   opacity:0;transition:opacity .5s ease;pointer-events:none}
 #wallover.on{opacity:1}
@@ -205,10 +209,11 @@ body.locked{overflow:hidden;height:100svh}
 .ql div{border-left:4px solid var(--cyan);background:var(--paper);border-radius:0 8px 8px 0;
   padding:10px 13px;font-size:15.5px;font-weight:700;color:var(--navy);opacity:0}
 .ql div.in{opacity:1;animation:fadein .4s ease}
-.scue{position:absolute;left:0;right:0;bottom:48px;text-align:center;font-size:12px;font-weight:700;
+.scue{position:absolute;left:0;right:0;bottom:30px;text-align:center;font-size:12px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;color:var(--gray);opacity:0;transition:opacity .5s ease}
 .scue.on{opacity:1}
-.scue span{display:block;font-size:19px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
+.scue span{display:inline-block;font-size:15px;margin:0 0 0 7px;vertical-align:-2px;
+  animation:bob 1.8s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
 /* ══════════ READ ══════════ */
@@ -244,6 +249,7 @@ body.locked{overflow:hidden;height:100svh}
     <div id="ticks"></div>
   </div>
   <button id="skip" hidden></button>
+  <button id="fwd" aria-label="Next page">&rarr;</button>
   <div id="note">Demo for intern poster session &middot; all data invented</div>
 
   <!-- 1 -->
@@ -399,77 +405,96 @@ body.locked{overflow:hidden;height:100svh}
   <div class="rtop"><img src="assets/biomarin-logo.png" alt="BioMarin"></div>
   <div class="rhero">
     <h1>What twelve weeks actually taught me.</h1>
-    <p>Not a recap of the walkthrough. Where I started, what changed my thinking, and what I would
-      do with more time.</p>
+    <p><b>The information we need to act already exists &mdash; scattered across people and systems,
+      so reaching it costs more than acting on it. What I would build next is the place it all lives
+      together.</b></p>
   </div>
 
   <section>
     <h2><span>01 — Where I started</span>I assumed the data would be the hard part.</h2>
     <p>The brief was to make shipment performance visible. I expected the difficulty to sit in the
       modeling — joining sources, settling definitions, getting the logic right.</p>
-    <p>That work was real. It was not where the time went, and it was not what mattered most.</p>
+    <p>That work was real, and it was not where the time went. Most of the twelve weeks went to
+      retrieval &mdash; finding which system held the truth, reconciling two meanings of "late,"
+      working out who to ask, then waiting. <b>Building came last and took the least.</b></p>
+    <p>GEO already uses tiered reporting. What I added was the content inside each tier &mdash;
+      release-step cycle time, delay reason, quarantine status and quality context, against one set
+      of definitions.</p>
   </section>
 
   <section>
-    <h2><span>02 — What changed my thinking</span>One shipment reframed the whole project.</h2>
-    <p>A batch moved before full release and then sat at its destination against an open deviation.
-      Nothing in the records was wrong. The movement data was right. The quality data was right.</p>
-    <p>They were simply held apart. Proving <i>why</i> that shipment was late meant asking several
-      people across two functions and waiting on replies.</p>
-    <p>That was the moment the project stopped being about a dashboard. Teams act on these every
-      time &mdash; <b>they just start later, with less room left to stop the next one.</b></p>
+    <h2><span>02 — What the work showed</span>The reason existed. Reaching it did not.</h2>
+    <p>A finished dashboard can tell anyone that we missed. It cannot tell them what to do about it.</p>
+    <p>Take one late transfer. The batch had moved before full release and was sitting against an
+      open deviation &mdash; every record correct, just held apart.</p>
+    <p>Proving <i>why</i> it was late meant asking several people across two functions and waiting
+      on replies. <b>The knowledge existed &mdash; it was just stored one person and one system at
+      a time.</b></p>
+    <p>The waste is not the delay. It is the rework behind it &mdash; a QC slot re-planned twice,
+      freight expedited to hold the date, shipping documents redone against stale facts.
+      <b>Hours each, every time.</b></p>
+    <p>Use what we already hold: surface the deviation before the next transfer is scheduled, flag
+      the shipments most likely to slip, and go in prepared. <b>A lean operation, kept lean.</b></p>
   </section>
 
   <section>
-    <h2><span>03 — What it cost</span>Most of the time went to retrieval, not building.</h2>
-    <p>Finding which system held the truth. Discovering two teams meant different things by "late."
-      Working out who to ask, then waiting. Building came last and took the least.</p>
-    <p>I do not read that as a story about being new. Anyone reconstructing the same answer pays the
-      same cost, every time it is needed — and off-plan events happen often enough that this is a
-      recurring bill, not a one-off.</p>
-  </section>
-
-  <section>
-    <h2><span>04 — What I would do with more time</span>Three steps, in order.</h2>
+    <h2><span>03 — What this is for</span>See it sooner. Escalate cleanly. Iterate.</h2>
+    <p>Off-plan happens, sometimes weekly, and teams act on it every time. That is not the problem.
+      <b>The problem is how late the acting starts.</b></p>
     <ul>
-      <li><b>Agree the definitions.</b> One meaning of late, one owner per metric. Contributions do
-        not stack until the words match.</li>
-      <li><b>Link movement to quality context</b> at batch level, keeping unmatched cases visible
-        rather than quietly dropped.</li>
-      <li><b>Record the decision against the number</b> — cause, owner, action, outcome — so the
-        next person does not rebuild it from scratch.</li>
+      <li><b>See it sooner.</b> Surface the condition while the shipment is still in flight, not at
+        month end when the only option left is explaining it.</li>
+      <li><b>Escalate with the cause attached.</b> Then the first conversation is about the fix and
+        the plan, not about what happened.</li>
+      <li><b>Make the path obvious.</b> A named owner and a clear route up, so an issue moves instead
+        of sitting until someone adopts it.</li>
+      <li><b>Iterate in weeks, not quarters.</b> Ship a narrow version, learn from it, extend.</li>
     </ul>
-    <p>None of this needs a new platform. It extends what already exists.</p>
   </section>
 
   <section>
-    <h2><span>05 — Where this goes next</span>One thread is a proof, not a program.</h2>
-    <p>Shipment on-time is one tile on a board full of them. The connection underneath it &mdash;
-      movement, quality context, decision &mdash; is the same shape for most of the others. What I
-      built is a worked example of it, not the end of it.</p>
-    <p>Once that record exists, the questions change from backward to forward:</p>
+    <h2><span>04 — Where this goes next</span>One thread is the proof. A connected GEO system is the point.</h2>
+    <p><b>One place where shipments, quality events, release steps, delay reasons, cost impact,
+      partner performance and the decisions taken against them live together</b> &mdash; instead of
+      being reassembled by hand every time. Not another dashboard. The layer underneath all of
+      them.</p>
+    <p>It has to read both directions. Leadership reaching the cause without booking a meeting, and
+      the team that fixed something <b>seeing their own action move the number.</b> Without the
+      second one, nobody keeps it alive.</p>
+    <p>It also gives an agent somewhere to stand &mdash; enough context to tell the right people
+      early, without being asked. <b>We are small enough to actually do this.</b></p>
+    <p>Three steps to get there:</p>
+    <ul>
+      <li><b>Agree the definitions.</b> One meaning of late, one owner per metric.</li>
+      <li><b>Connect the sources.</b> Build the skeleton first &mdash; the entities and keys
+        everything else hangs off &mdash; then fill in the blocks. How far this can go is decided
+        by the foundation, not the last mile.</li>
+      <li><b>Record the decision against the number</b> &mdash; cause, owner, action, outcome.</li>
+    </ul>
+    <p>Run it as continuous improvement, not a project with an end date. Ship narrow, watch how
+      planners actually use it, remove what gets in the way, extend. The technology moves fast
+      enough that the question is never whether we <i>can</i> &mdash; it is whether we adopt it
+      because it improves a decision, or because it is new. <b>Only the first is worth doing.</b></p>
+    <p>That is what finally makes AI worth pointing at this. Not a model fixing a metric, but a
+      connected record it can actually read:</p>
     <ul>
       <li>Which batches an open deviation puts at risk, <b>before</b> the next shipment is planned.</li>
       <li>Which shipments in flight are trending toward a miss, while there is still room to move.</li>
       <li>Which to prioritize, weighted by how critical each external partner is to supply.</li>
-      <li>What drives most delay across the whole network, rather than one lane at a time.</li>
+      <li>What has driven most delay across the network this quarter, not one lane at a time.</li>
     </ul>
-    <p>All of these are answerable today. They cost days of asking, which is why they get asked
-      after the fact instead of before it. <b>Closing that gap is what turns reporting into
-      prevention.</b></p>
-    <p>It is also the groundwork for a serious AI use case here. Not a model fixing a metric &mdash;
-      a connected record of what moved, what happened to it, and what was decided. That record is
-      the prerequisite, and it does not exist yet. <b>I would build it next.</b></p>
+    <p>Answers in minutes instead of days. <b>That is what I would build next.</b></p>
   </section>
 
   <section>
-    <h2><span>06 — What I am taking with me</span>Not the technical skill.</h2>
+    <h2><span>05 — What I am taking with me</span>Not the technical skill.</h2>
     <p>What I want to carry forward is not the modeling or the tooling. It is the environment, and
       the people who made the work possible.</p>
     <p>Biotech is one of the few industries where the constraints are genuinely real and the
-      possibilities are still wide open at the same time — heavily regulated, and sitting on
-      technology that can change how the work actually gets done. <b>That combination is what I want
-      to keep working in.</b></p>
+      possibilities are still wide open at the same time &mdash; heavily regulated, and sitting on
+      technology that can change how the work actually gets done, with real potential and real
+      problems still waiting to be worked on. <b>That combination is what I want to keep working
+      in.</b></p>
     <p>And the way this place operates stayed with me: <b>be real</b>, <b>have fun</b>, and keep
       doing both in a market that does not slow down for anyone. That is what I would be glad to
       keep contributing to.</p>
@@ -625,7 +650,7 @@ function buildLineage(){
   tag.setAttribute("text-anchor", "middle"); tag.setAttribute("fill", "#ED1849");
   tag.setAttribute("font-size", "13"); tag.setAttribute("font-weight", "700");
   tag.setAttribute("font-family", "Arial, Helvetica, sans-serif");
-  tag.setAttribute("opacity", "0"); tag.textContent = "A016772";
+  tag.setAttribute("opacity", "0"); tag.textContent = "A012233";
   svg.appendChild(tag); fade(tag, "1", 3400);
 
   log.forEach(function(c, i){ if(i !== hL) fade(dot(c, 5, "#0075BF"), ".22", 4300 + i * 40); });
@@ -662,6 +687,7 @@ function go(i){
   el.classList.add("on");
   $("#ct").textContent = (i + 1) + " / " + SCENES.length;
   $("#back").disabled = (i === 0);
+  $("#fwd").style.display = def.last ? "none" : "block";
 
   Array.prototype.forEach.call(ticks.children, function(d, n){
     d.className = "";
@@ -682,6 +708,7 @@ function next(){ go(idx + 1); }
 
 /* stepping back re-enters the scene normally, so its timer restarts and playback continues */
 $("#back").addEventListener("click", function(){ if(idx > 0) go(idx - 1); });
+$("#fwd").addEventListener("click", next);
 
 var ENTER = {
   hook: function(){
