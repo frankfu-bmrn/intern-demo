@@ -30,8 +30,10 @@ body.locked{overflow:hidden;height:100svh}
 /* ══════════ FILM ══════════ */
 #film{position:fixed;inset:0;z-index:100;background:#fff;overflow:hidden}
 #film.release{position:relative;inset:auto;height:100svh}
-.scene{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
-  padding:78px max(22px,calc(50vw - 290px)) 46px;opacity:0}
+/* safe center keeps the top reachable when content is taller than the screen */
+.scene{position:absolute;inset:0;display:none;flex-direction:column;justify-content:safe center;
+  padding:78px max(22px,calc(50vw - 290px)) 46px;opacity:0;
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* explicit end state, not animation fill — the animation will not restart on re-entry */
 .scene.on{display:flex;opacity:1;animation:fadein .4s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
@@ -238,6 +240,54 @@ body.locked{overflow:hidden;height:100svh}
 .replay{margin-top:20px;background:var(--blue);border:0;color:#fff;font-family:var(--font);
   font-size:14px;font-weight:700;padding:13px 24px;border-radius:24px;cursor:pointer}
 .disc{margin-top:24px;font-size:12px;color:var(--gray);line-height:1.6;border-top:1px solid var(--line);padding-top:16px}
+
+/* ══════════ narrow phones ══════════ */
+@media (max-width:380px){
+  .scene{padding:72px 16px 42px}
+  .h{font-size:clamp(23px,7.4vw,32px)}
+  .s{font-size:clamp(16px,4.6vw,19px)}
+  .n{font-size:14px}
+  .kick{font-size:11px;letter-spacing:.13em}
+  .who{margin-top:22px;padding-top:16px;gap:12px}
+  .ava{width:64px;height:64px}
+  .wt{font-size:13px} .wt b{font-size:17px} .wt .li{font-size:12px}
+  .glo{font-size:11.5px;margin-top:10px}
+  #startbtn{padding:14px;font-size:16px;margin-top:20px}
+  #wall{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:4px}
+  .tile{padding:6px}
+  .tile .tn{font-size:8px} .tile .tv{font-size:14px}
+  #pick span{font-size:15px;padding:12px 20px}
+  .q{padding:9px 0;font-size:15px}
+  .tier{padding:9px 12px}
+  .tier .tq{font-size:15.5px} .tier .tw{font-size:11px}
+  .grow .gid{width:44px;font-size:10px}
+  .glate{width:28px;font-size:10px}
+  .gkey{font-size:9.5px;gap:7px}
+  .det .dh{padding:9px 12px;font-size:12px}
+  .tl{padding:12px 12px 2px 28px}
+  .ev{padding-bottom:10px} .ev .t{font-size:13.5px} .ev .d{font-size:11px}
+  #openbtn{padding:13px;font-size:16px}
+  .ql div{padding:8px 11px;font-size:14px}
+  .lead .lh .v{font-size:26px}
+  .lead .lv2{font-size:14px}
+  .dir{font-size:14.5px} .dir .a{width:38px;font-size:11px}
+  .tkey{font-size:13.5px}
+  #fwd{width:40px;height:40px;font-size:17px;right:14px;bottom:26px}
+}
+
+/* ══════════ short screens ══════════ */
+@media (max-height:690px){
+  .scene{padding-top:66px;padding-bottom:38px}
+  .h{font-size:clamp(22px,6.4vw,30px)}
+  .s{font-size:16.5px;margin-top:9px}
+  .n{margin-top:8px}
+  .ql{gap:5px} .ql div{padding:6px 10px;font-size:13.5px}
+  .n{font-size:13.5px}
+  .ev{padding-bottom:9px}
+  .tiers{gap:6px}
+  .who{margin-top:18px;padding-top:14px}
+  .scue{bottom:24px}
+}
 </style>
 </head>
 <body class="locked">
